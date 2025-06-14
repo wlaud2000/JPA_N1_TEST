@@ -24,62 +24,41 @@ public class DataInit {
     @PostConstruct
     @Transactional
     public void initData() {
-        log.info("=== 🎬 N+1 테스트 데이터 생성 시작 ===");
+        log.info("=== 🎬 간단한 N+1 테스트 데이터 생성 시작 ===");
 
-        // 3명의 회원 생성
-        Member member1 = Member.builder()
-                .nickname("alice")
-                .password("password1")
+        // 1명의 회원 생성
+        Member member = Member.builder()
+                .nickname("testuser")
+                .password("password123")
                 .build();
 
-        Member member2 = Member.builder()
-                .nickname("bob")
-                .password("password2")
+        Member savedMember = memberRepository.save(member);
+        log.info("✅ 회원 생성 완료: {}", savedMember.getNickname());
+
+        // 1개의 게시글 생성
+        Post post = Post.builder()
+                .member(savedMember)
+                .content("N+1 문제 테스트용 게시글입니다. 이 게시글에 댓글 10개가 달려있어요!")
                 .build();
 
-        Member member3 = Member.builder()
-                .nickname("charlie")
-                .password("password3")
-                .build();
+        Post savedPost = postRepository.save(post);
+        log.info("✅ 게시글 생성 완료: ID {}", savedPost.getId());
 
-        memberRepository.save(member1);
-        memberRepository.save(member2);
-        memberRepository.save(member3);
+        // 10개의 댓글 생성
+        for (int i = 1; i <= 10; i++) {
+            Comment comment = Comment.builder()
+                    .member(savedMember)
+                    .post(savedPost)
+                    .content(i + "번째 댓글입니다. N+1 문제 테스트용 댓글이에요!")
+                    .build();
 
-        Member[] members = {member1, member2, member3};
-
-        // 각 회원당 5개의 게시글 생성 (총 15개)
-        for (int i = 0; i < 3; i++) {
-            Member member = members[i];
-
-            for (int j = 1; j <= 5; j++) {
-                Post post = Post.builder()
-                        .member(member)
-                        .content(member.getNickname() + "의 " + j + "번째 게시글입니다.")
-                        .build();
-
-                Post savedPost = postRepository.save(post);
-
-                // 각 게시글당 8개의 댓글 생성
-                for (int k = 1; k <= 8; k++) {
-                    // 댓글 작성자는 3명 중 순환해서 선택
-                    Member commentAuthor = members[k % 3];
-
-                    Comment comment = Comment.builder()
-                            .member(commentAuthor)
-                            .post(savedPost)
-                            .content(commentAuthor.getNickname() + "이 작성한 " + k + "번째 댓글입니다.")
-                            .build();
-
-                    commentRepository.save(comment);
-                }
-            }
+            commentRepository.save(comment);
         }
 
-        log.info("=== 🎬 N+1 테스트 데이터 생성 완료 ===");
+        log.info("=== 🎬 간단한 N+1 테스트 데이터 생성 완료 ===");
         log.info("📊 생성된 데이터:");
-        log.info("   - 회원: 3명 (alice, bob, charlie)");
-        log.info("   - 게시글: 15개 (회원당 5개씩)");
-        log.info("   - 댓글: 120개 (게시글당 8개씩)");
+        log.info("   - 회원: 1명 (testuser)");
+        log.info("   - 게시글: 1개");
+        log.info("   - 댓글: 10개");
     }
 }
