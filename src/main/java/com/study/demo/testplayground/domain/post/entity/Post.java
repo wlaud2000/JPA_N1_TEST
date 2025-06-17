@@ -1,7 +1,6 @@
 package com.study.demo.testplayground.domain.post.entity;
 
 import com.study.demo.testplayground.domain.comment.entity.Comment;
-import com.study.demo.testplayground.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,10 +18,6 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
 
     @Column(name = "content", nullable = false)
     private String content;
